@@ -1,0 +1,14 @@
+#!/usr/local/bin/bash
+# for FreeBSD
+
+STATS="UNKNOWN:0 ESTABLISHED:0 SYN_SENT:0 SYN_RECV:0 FIN_WAIT_1:0 FIN_WAIT_2:0 TIME_WAIT:0 CLOSED:0 CLOSE_WAIT:0 LAST_ACK:0 LISTEN:0 CLOSING:0"
+CONN="$(netstat -p tcp -aln|grep -v '^Active\|^Proto' | awk '{print $6}' | sort | uniq -c | awk '{print $2":"$1}')"
+
+if [ ! -z "$CONN" ];then
+    for s in $CONN
+    do
+        STATS=$(echo $STATS | sed -e s/"${s%%:*}:0"/"$s"/g )
+    done
+fi
+
+echo $STATS | sed -e s/' '/',"'/g -e s/':'/'":'/g -e s/^/'{"tcp_conn":{"'/g -e s/'WAIT_'/'WAIT'/g -e s/'$'/'}}'/g
